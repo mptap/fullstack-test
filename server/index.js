@@ -4,6 +4,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const Channel = require("./models/channel");
 const Message = require("./models/message");
+const Reaction = require("./models/reaction");
 const User = require("./models/user");
 const constants = require("./constants");
 
@@ -39,7 +40,16 @@ const fetchAndEmitChannels = async (socket) => {
 
 const fetchAndEmitMessages = async (socket) => {
   const messages = await Message.getAll();
-  socket.emit(constants.serverEvents.UPDATE_ALL_MESSAGES, messages);
+  const reactions = await Reaction.getAll();
+  socket.emit(
+    constants.serverEvents.UPDATE_ALL_MESSAGES,
+    messages.map((message) => ({
+      ...message,
+      reactions: reactions.filter(
+        (reaction) => reaction.messageId === message.id
+      ),
+    }))
+  );
 };
 
 const fetchAndEmitUsers = async (socket) => {
@@ -109,6 +119,28 @@ app.patch("/channels/:channelId/messages/:messageId", async (req, res) => {
     message.content = content;
     try {
       await message.save();
+      fetchAndEmitMessages(socketServer);
+      return res.status(200).send();
+    } catch (error) {
+      return res.status(500).send({ error: error.message });
+    }
+  }
+
+  res.status(200).send();
+});
+
+app.patch("/messages/:messageId/reactions", async (req, res) => {
+  const { userId } = req.session;
+  const { messageId } = req.params;
+  const { reactedWith } = req.body;
+  const message = await Message.getById(messageId);
+  if (message == null) {
+    res.status(404).send();
+  } else {
+    const id = messageId + userId;
+    reaction = new Reaction({ id, messageId, userId, reactedWith });
+    try {
+      await reaction.save();
       fetchAndEmitMessages(socketServer);
       return res.status(200).send();
     } catch (error) {

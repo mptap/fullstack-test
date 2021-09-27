@@ -52,3 +52,26 @@
 .message:hover .editButton {
   opacity: 1;
 }
+
+.emojiReaction {
+  background-color: $primary-dark-800;
+  border: 1px solid $primary-dark-800;
+  border-radius: 4px;
+  color: $primary-dark-300;
+  margin-top: 10px;
+  margin-right: 10px;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &:hover:not(.emojiReactionActive) {
+    background-color: $primary-dark-600;
+    color: $white;
+  }
+}
+
+.emojiReactionActive {
+  background-color: $brand-500;
+  color: $white;
+}

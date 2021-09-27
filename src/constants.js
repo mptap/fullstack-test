@@ -23,3 +23,5 @@ export const serverEvents = keyMirror({
 });
 
 export const MESSAGE_LIMIT = 256;
+
+export const EMOJI_LIST = ["👍", "❤️", "😂"];

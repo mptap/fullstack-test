@@ -26,6 +26,22 @@ Please spend up to two hours implementing the frontend and backend for a message
 - `yarn client` — Starts the Webpack server
 - `yarn server` — Starts the Node server
 
-## Tradeoffs and follow-ups
 
-_[edit me!]_
+## Demo
+
+I have recorded a video walkthrough [here](https://bit.ly/3ic4Skn).
+
+## Tradeoffs
+
+I have chosen to store reactions as a mapping of the userId to the list of emoji reactions the user reacted with for a message.
+I traded space in this approach to avoid race conditions when updating the count for an emoji since we expect this API to run in a distributed system with eventually consistent database.
+I batched together all the emojis a user may react with for a message to make it easy to support adding, removing, searching, and updating by user. A potential use case might be to support removal of a user's data for privacy or compliance. Performance can be improved by aggressive caching.
+An alternative approach would have been to store the inverse mapping of each emojiId to the list of users that reacted with it for a message which would de-dupe the emojiIds. While it could be possible to use versionIds in database (coupled with storing emojis on Messages table itself) and address some race conditions, the above choice also made it easier to delete all data for a user if needed (eg GDPR).
+
+To support the above model, I chose to expose an additional API to upsert a user's reactions to a given message. The client / app contains the logic to determine the final state of emojis a user may have for a given message. This can be extended to batch updates for a given message by a user to reduce chattiness. For example - when a user reacts to multiple emojis to a given message, the client / app can batch them together instead of making one update call per emoji.
+
+## Follow-ups
+
+If more time were available, I'd optimize fetching reactions on a per message basis to avoid the expense of filtering the reactions associated with each message on the server side.  
+I'd invest in writing automated tests, and caching the emoji reactions to avoid network roundtrips.
+As a follow-up I'd add a feature to display the list of users that reacted with an emoji upon hovering over an emoji button.

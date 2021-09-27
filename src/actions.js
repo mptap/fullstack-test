@@ -35,3 +35,9 @@ export const editMessage = async ({ messageId, channelId, content }) => {
     content,
   });
 };
+
+export const reactToMessage = async ({ messageId, reactedWith }) => {
+  await axios.patch(getRoute(`/messages/${messageId}/reactions`), {
+    reactedWith,
+  });
+};
